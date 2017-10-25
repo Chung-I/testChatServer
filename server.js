@@ -3,10 +3,15 @@
 import path from 'path';
 import express from 'express';
 import mongoose from 'mongoose';
-import api from './api';
+import http from 'http';
+import socket from 'socket.io';
+
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
+
+import api from './api';
 import dbConfigFile from './config/config.js';
+
 console.log(process.env.NODE_ENV);
 const dbConfig = dbConfigFile['development'];
 
@@ -19,11 +24,14 @@ mongoose.connect(dbUrl);
 const port = process.env.PORT || 3000;
 
 const app = express();
+const httpServer = http.Server(app);
+const io = socket(httpServer);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/api', api);
+app.use('/api', api(io));
 
 app.listen(port, err => {
   if (err) {

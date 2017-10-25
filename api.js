@@ -9,31 +9,53 @@ const data = {
 };
 
 // Write your restful api here:
-
-router.get('/users', (req, res) => {
-  User.find().exec((err, users) => {
-    console.log(users);
-    res.json(users);
+const returnRouter = (io) => {
+  router.get('/users', (req, res) => {
+    User.find().exec((err, users) => {
+      console.log(users);
+      res.json(users);
+    });
   });
-});
 
-router.post('/auth/login', (req, res) => {
-  console.log(req.body);
-  const { username, password } = req.body;
-  User.create({
-    username: username,
-    password: password
-  }, (err, user) => {
-    res.json(user);
+  router.post('/auth/login', (req, res) => {
+    console.log(req.body);
+    const { username, password } = req.body;
+    User.findOne({
+      username: username
+    }, (err, user) => {
+      if (err) {
+        console.log(err);
+      } else if (!user){
+        console.log('username not found; create new account');
+        User.create({
+          username: username,
+          password: password
+        }, (err, user) => {
+          if (err) {
+            console.log(err);
+          }
+          res.json({'success': true});
+        });
+      } else {
+        if (user.password !== password) {
+          console.log('wrong password');
+          res.json({'success': false});
+        } else {
+          res.json({'success': true});        
+        }
+      }
+    }); 
   });
-});
 
-router.get('/users/:id', (req, res) => {
-  res.json(data.users[req.params.id - 1]);
-});
+  router.get('/users/:id', (req, res) => {
+    res.json(data.users[req.params.id - 1]);
+  });
 
-router.use((req, res) => {
-  res.send('404');
-});
+  router.use((req, res) => {
+    res.send('404');
+  });
 
-export default router;
+  return router;
+}
+
+module.exports = returnRouter;
