@@ -1,10 +1,21 @@
 import mongoose from 'mongoose';
+import Device from './device';
 
 const userSchema = mongoose.Schema({
   username: { type: String, unique: true },
   password: String,
-  connected: Boolean
+  connected: Boolean,
+  prescription: [{
+    drug: String,
+    time: Date,
+    amount: Number
+  }],
+  device: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Device'
+  }
 });
 
-export const User = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+module.exports = User;
 
